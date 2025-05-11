@@ -43,6 +43,8 @@ public class ServidorHTTPS {
     private static final Logger logger = Logger.getLogger("miLog");
     private static FileHandler fh;
 
+    private static final Semaforo semaforoFichero = new Semaforo();
+
     public static void main(String[] args) throws Exception {
 
         //CONFIGURACION DEL LOGGER
@@ -110,7 +112,7 @@ public class ServidorHTTPS {
         private final Socket cliente;
         private static final String ALGORITMO = "AES";
         private static final byte[] CLAVE_AES = "1234567890123456".getBytes();
-         
+
         public HiloCliente(Socket cliente) {
             this.cliente = cliente; // Asocia el socket del cliente al hilo.
         }
@@ -254,7 +256,7 @@ public class ServidorHTTPS {
                 logger.log(Level.SEVERE, String.format("Error juego Adivina en la linea %d: El valor introducido no es correcto. Valor recibido: %s", lineaError, valorRecibido));
                 respuestaHTML = "<p>Error procesando tu número. Intenta de nuevo.  </p>";
                 codigo = 400;
-                e.printStackTrace(); // Muestra errores en la consola.
+                logger.log(Level.WARNING, "Error juego Adivina", e);
             }
 
             return construirRespuesta(codigo, Paginas.generarHtmlAdivina(respuestaHTML), sessionId);
@@ -300,7 +302,7 @@ public class ServidorHTTPS {
             } catch (Exception e) {
                 resultado = "<p>Error procesando tu elección. Intenta de nuevo.</p>";
                 codigo = 400;
-                e.printStackTrace(); // Muestra errores en la consola.
+                logger.log(Level.WARNING, "Error juego Dados", e);
             }
 
             return construirRespuesta(codigo, Paginas.generarHtmlDados(resultado), sessionId);
@@ -352,7 +354,7 @@ public class ServidorHTTPS {
                 logger.log(Level.SEVERE, String.format("Error juego Piedra, papel, o tijeras en la linea %d: El valor introducido no es correcto. Valor recibido: %s", lineaError, valorRecibido));
                 resultado = "<p>Error procesando tu elección. Intenta de nuevo.</p>  ";
                 codigo = 400;
-                e.printStackTrace(); // Muestra errores en la consola.
+                logger.log(Level.WARNING, "Error juego Piedra, papel, o tijeras", e);
             }
 
             return construirRespuesta(codigo, Paginas.generarHtmlPpt(resultado), sessionId);
@@ -430,68 +432,89 @@ public class ServidorHTTPS {
         }
 
         private boolean usuarioYaRegistrado(String email) throws IOException {
-            File f = new File("usuarios.txt");
-            if (!f.exists()) {
-                return false;
-            }
+            try {
+                semaforoFichero.comenzarLectura();
 
-            try (BufferedReader br = new BufferedReader(new FileReader(f))) {
-                String linea;
-                while ((linea = br.readLine()) != null) {
-                    //Descifrar
-                    String lineaDescifrada = descifrar(Base64.getDecoder().decode(linea));
-                    if (lineaDescifrada.startsWith(email + ":")) {
-                        return true;
-                    }
+                File f = new File("usuarios.txt");
+                if (!f.exists()) {
+                    return false;
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
+
+                try (BufferedReader br = new BufferedReader(new FileReader(f))) {
+                    String linea;
+                    while ((linea = br.readLine()) != null) {
+                        //Descifrar
+                        String lineaDescifrada = descifrar(Base64.getDecoder().decode(linea));
+                        if (lineaDescifrada.startsWith(email + ":")) {
+                            return true;
+                        }
+                    }
+                } catch (Exception e) {
+                    logger.log(Level.WARNING, "Error de registro", e);
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
+                semaforoFichero.terminarLectura();
             }
             return false;
         }
 
-        private synchronized boolean verificarUsuario(String email, String password) throws IOException {
-            Path path = Paths.get("usuarios.txt");
-            if (!Files.exists(path)) {
-                return false;
-            }
+        private boolean verificarUsuario(String email, String password) throws Exception {
+            try {
+                semaforoFichero.comenzarLectura();
 
-            try (BufferedReader br = Files.newBufferedReader(path)) {
-                String lineaCifrada;
-                while ((lineaCifrada = br.readLine()) != null) {
-                    //Descifrar linea
-                    String lineaDescifrada = descifrar(Base64.getDecoder().decode(lineaCifrada));
-                    String[] partes = lineaDescifrada.split(":", 2);
-                    if (partes.length == 2 && partes[0].equals(email)) {
-                        return BCrypt.checkpw(password, partes[1]);
-                    }
+                Path path = Paths.get("usuarios.txt");
+                if (!Files.exists(path)) {
+                    return false;
                 }
 
+                try (BufferedReader br = Files.newBufferedReader(path)) {
+                    String lineaCifrada;
+                    while ((lineaCifrada = br.readLine()) != null) {
+                        //Descifrar linea
+                        String lineaDescifrada = descifrar(Base64.getDecoder().decode(lineaCifrada));
+                        String[] partes = lineaDescifrada.split(":", 2);
+                        if (partes.length == 2 && partes[0].equals(email)) {
+                            return BCrypt.checkpw(password, partes[1]);
+                        }
+                    }
+                }
+                return false;
+
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.log(Level.WARNING, "Verificación errónea", e);
+                return false;
+            } finally {
+                semaforoFichero.terminarLectura();
             }
-            return false;
 
         }
 
         private synchronized boolean registrarUsuario(String email, String password) throws IOException {
-
-            //Generar hash de la contraseña
-            String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(12));
-
-            //Cifrar email
-            String datos = email + ":" + hashedPassword;
             try {
+                semaforoFichero.comenzarEscritura();
+                //Generar hash de la contraseña
+                String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(12));
+
+                //Cifrar email
+                String datos = email + ":" + hashedPassword;
+
                 byte[] datosCifrados = cifrar(datos);
                 String lineaCifrada = Base64.getEncoder().encodeToString(datosCifrados);
                 try (PrintWriter out = new PrintWriter(new FileWriter("usuarios.txt", true))) {
                     out.println(lineaCifrada);
+
                 }
                 return true;
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.log(Level.WARNING, "Registro interrumpido", e);
                 return false;
+
+            } finally {
+                semaforoFichero.terminarEscritura();
             }
+
         }
 
         private Map<String, String> parseParams(String cuerpo) {

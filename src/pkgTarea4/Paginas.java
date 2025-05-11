@@ -19,7 +19,6 @@ public class Paginas {
             + "</style>";
 
     public static final String html_index = "<html><head><title>Inicio</title><meta charset=UTF-8><link rel=icon href=data:,/>" + estilo + "</head><body>"
-           // + "<a class='cerrar-sesion' href='/logout'>Cerrar sesión</a>"
             + "<div class='contenedor'>"
             + "<h1>Bienvenido al Servidor de Juegos</h1>"
             + "<ul>"
@@ -32,7 +31,6 @@ public class Paginas {
             + "</body></html>";
 
     public static final String html_noEncontrado = "<html><head><title>Error 404</title><meta charset=UTF-8><link rel=icon href=data:,/>" + estilo + "</head><body>"
-            //+ "<a class='cerrar-sesion' href='/logout'>Cerrar sesión</a>"
             + "<div class='contenedor'>"
             + "<h1>404 Página No Encontrada</h1>"
             + "<p>La página solicitada no existe.</p>"
@@ -46,9 +44,8 @@ public class Paginas {
                 + "<h1>¡Adivina el Número!</h1>"
                 + "<form action='/adivina' method='POST'>"
                 + "<label for='numero'>Introduce un número del 1 al 100:</label>"
-                //+ "<input type='number' id='numero' name='numero' min='1' max='100' required pattern='\\d*'>"
-                /*// PRUEBAS*/
-                + "<input id='numero' name='numero' min='1' max='100'>"
+                + "<input type='number' id='numero' name='numero' min='1' max='100' required pattern='\\d*'>"
+                // PRUEBAS + "<input id='numero' name='numero' min='1' max='100'>"
                 + "<button type='submit'>Enviar</button>"
                 + "</form>"
                 + resultado
@@ -59,7 +56,6 @@ public class Paginas {
 
     public static String generarHtmlPpt(String resultado) {
         return "<html><head><title>Piedra, Papel o Tijera</title><meta charset=UTF-8><link rel=icon href=data:,/>" + estilo + "</head><body>"
-               // + "<a class='cerrar-sesion' href='/logout'>Cerrar sesión</a>"
                 + "<div class='contenedor'>"
                 + "<h1>¡Juega a Piedra, Papel o Tijera!</h1>"
                 + "<form action='/ppt' method='POST'>"
@@ -77,7 +73,6 @@ public class Paginas {
         Random random = new Random();
         int dadoCliente = random.nextInt(6) + 1;
         return "<html><head><title>Lanza Dados</title><meta charset=UTF-8><link rel=icon href=data:,/>" + estilo + "</head><body>"
-               // + "<a class='cerrar-sesion' href='/logout'>Cerrar sesión</a>"
                 + "<div class='contenedor'>"
                 + "<h1>¡Lanza Dados!</h1>"
                 + "<form action='/dados' method='POST'>"
