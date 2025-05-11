@@ -35,12 +35,6 @@ import javax.net.ssl.SSLSocket;
 import org.mindrot.jbcrypt.BCrypt;
 import java.util.logging.*;
 
-/**
- * Servidor HTTPS que maneja juegos interactivos.
- *
- * Rutas disponibles: - /adivina: Juega a "Adivina el N�mero". - /dados: Juega a
- * "Lanza Dados". - /ppt: Juega a "Piedra, Papel o Tijera".
- */
 public class ServidorHTTPS {
 
     private static final ConcurrentHashMap<String, SesionJuego> sesiones = new ConcurrentHashMap<>();
@@ -73,9 +67,6 @@ public class ServidorHTTPS {
             e.printStackTrace();
 
         }
-        SimpleFormatter formatter = new SimpleFormatter();
-
-        fh.setFormatter(formatter);
 
         //SEGURIDAD SSL
         //Cargar el almacen de claves (keystore)
@@ -111,15 +102,15 @@ public class ServidorHTTPS {
     }
 
     /**
-     * Clase interna que implementa la l�gica de manejar un cliente. Extiende la
-     * clase Thread y sobrescribe el m�todo run.
+     * Clase interna que implementa la lógica de manejar un cliente. Extiende la
+     * clase Thread y sobrescribe el método run.
      */
     private static class HiloCliente extends Thread {
 
         private final Socket cliente;
         private static final String ALGORITMO = "AES";
         private static final byte[] CLAVE_AES = "1234567890123456".getBytes();
-
+         
         public HiloCliente(Socket cliente) {
             this.cliente = cliente; // Asocia el socket del cliente al hilo.
         }
@@ -128,15 +119,15 @@ public class ServidorHTTPS {
         public void run() {
             try (
                     BufferedReader entrada = new BufferedReader(new InputStreamReader(cliente.getInputStream())); PrintWriter salida = new PrintWriter(cliente.getOutputStream(), true, StandardCharsets.UTF_8)) {
-                // Lee la primera l�nea de la petición HTTP.
+                // Lee la primera línea de la petición HTTP.
                 String peticion = entrada.readLine();
                 if (peticion == null || (!peticion.startsWith("GET") && !peticion.startsWith("POST"))) {
-                    return; // Ignora la petici�n si no es GET o POST.
+                    return; // Ignora la petición si no es GET o POST.
                 }
                 System.out.println("peticion: " + peticion);
                 String ruta = peticion.split(" ")[1]; // Extrae la ruta solicitada.
 
-                // Leer encabezados HTTP. Determina la sesionID y el tama�o del cuerpo.
+                // Leer encabezados HTTP. Determina la sesionID y el tamaño del cuerpo.
                 String[] metadatos = new String[2];
                 metadatos = obtenerMetadatos(entrada);
                 String sessionId = metadatos[0];
@@ -154,11 +145,8 @@ public class ServidorHTTPS {
                     cuerpo.append(buffer);
                 }
 
-                String respuesta; // Contendr� la respuesta generada por el servidor.
-                if (ruta.equals("/health")) {
-                    respuesta = manejarHealth(sessionId);
-                }
-                else if (ruta.equals("/")) {
+                String respuesta; // Contendrá la respuesta generada por el servidor.
+                if (ruta.equals("/")) {
                     if (sesion.estaAutenticado()) {
                         respuesta = construirRespuesta(200, Paginas.html_index, sessionId);
                     } else {
@@ -197,7 +185,7 @@ public class ServidorHTTPS {
                     respuesta = construirRespuesta(404, Paginas.html_noEncontrado, sessionId);
                 }
 
-                salida.println(respuesta); // Env�a la respuesta al cliente.
+                salida.println(respuesta); // Envía la respuesta al cliente.
             } catch (IOException e) {
                 e.printStackTrace(); // Muestra errores en la consola.
             }
@@ -236,7 +224,7 @@ public class ServidorHTTPS {
 
         private String manejarAdivina(String cuerpo, SesionJuego sesion, String sessionId) {
             if (sesion.numeroSecreto == 0) {
-                sesion.numeroSecreto = new Random().nextInt(100) + 1; // Genera un n�mero aleatorio al iniciar el juego.
+                sesion.numeroSecreto = new Random().nextInt(100) + 1; // Genera un número aleatorio al iniciar el juego.
                 sesion.intentosAdivina = 0; // Resetea los intentos.
             }
 
@@ -269,7 +257,7 @@ public class ServidorHTTPS {
                 e.printStackTrace(); // Muestra errores en la consola.
             }
 
-            return construirRespuesta(200, Paginas.generarHtmlAdivina(respuestaHTML), sessionId);
+            return construirRespuesta(codigo, Paginas.generarHtmlAdivina(respuestaHTML), sessionId);
         }
 
         private String manejarDados(String cuerpo, SesionJuego sesion, String sessionId) {
@@ -297,9 +285,9 @@ public class ServidorHTTPS {
 
                     if (sesion.rondaDados == 5) {
                         if (sesion.marcadorUsuarioDados > sesion.marcadorServidorDados) {
-                            resultado += "<p>¡Ganaste el juego! Marcador final: " + sesion.marcadorUsuarioDados + " - " + sesion.marcadorServidorDados + ". Vuelve a pulsar el bot�n para jugar de nuevo.</p>     ";
+                            resultado += "<p>¡Ganaste el juego! Marcador final: " + sesion.marcadorUsuarioDados + " - " + sesion.marcadorServidorDados + ". Vuelve a pulsar el botón para jugar de nuevo.</p>     ";
                         } else {
-                            resultado += "<p>Perdiste el juego. Marcador final: " + sesion.marcadorUsuarioDados + " - " + sesion.marcadorServidorDados + ". Vuelve a pulsar el bot�n para jugar de nuevo.</p>     ";
+                            resultado += "<p>Perdiste el juego. Marcador final: " + sesion.marcadorUsuarioDados + " - " + sesion.marcadorServidorDados + ". Vuelve a pulsar el botón para jugar de nuevo.</p>     ";
                         }
                         sesion.marcadorUsuarioDados = 0;
                         sesion.marcadorServidorDados = 0;
@@ -315,7 +303,7 @@ public class ServidorHTTPS {
                 e.printStackTrace(); // Muestra errores en la consola.
             }
 
-            return construirRespuesta(200, Paginas.generarHtmlDados(resultado), sessionId);
+            return construirRespuesta(codigo, Paginas.generarHtmlDados(resultado), sessionId);
         }
 
         private String manejarPPT(String cuerpo, SesionJuego sesion, String sessionId) {
@@ -340,18 +328,18 @@ public class ServidorHTTPS {
                             || (eleccionUsuario.equals("Tijeras") && eleccionServidor.equals("Papel"))) {
                         sesion.marcadorUsuarioPPT++;
                         sesion.rondaPPT++;
-                        resultado = "<p>Ronda " + sesion.rondaPPT + " .Ganaste esta ronda. Elegiste: " + eleccionUsuario + " - El servidor eligi�: " + eleccionServidor + "  </p>  ";
+                        resultado = "<p>Ronda " + sesion.rondaPPT + " .Ganaste esta ronda. Elegiste: " + eleccionUsuario + " - El servidor eligió: " + eleccionServidor + "  </p>  ";
                     } else {
                         sesion.marcadorServidorPPT++;
                         sesion.rondaPPT++;
-                        resultado = "<p>Ronda " + sesion.rondaPPT + " .Perdiste esta ronda. Elegiste: " + eleccionUsuario + " - El servidor eligi�: " + eleccionServidor + "  </p>  ";
+                        resultado = "<p>Ronda " + sesion.rondaPPT + " .Perdiste esta ronda. Elegiste: " + eleccionUsuario + " - El servidor eligió: " + eleccionServidor + "  </p>  ";
                     }
 
                     if (sesion.rondaPPT == 5) {
                         if (sesion.marcadorUsuarioPPT > sesion.marcadorServidorPPT) {
-                            resultado += "<p>¡Ganaste el juego! Marcador final: " + sesion.marcadorUsuarioPPT + " - " + sesion.marcadorServidorPPT + ". Vuelve a pulsar un bot�n para jugar de nuevo.</p>    ";
+                            resultado += "<p>¡Ganaste el juego! Marcador final: " + sesion.marcadorUsuarioPPT + " - " + sesion.marcadorServidorPPT + ". Vuelve a pulsar un botón para jugar de nuevo.</p>    ";
                         } else {
-                            resultado += "<p>Perdiste el juego. Marcador final: " + sesion.marcadorUsuarioPPT + " - " + sesion.marcadorServidorPPT + ". Vuelve a pulsar un bot�n para jugar de nuevo.</p>    ";
+                            resultado += "<p>Perdiste el juego. Marcador final: " + sesion.marcadorUsuarioPPT + " - " + sesion.marcadorServidorPPT + ". Vuelve a pulsar un botón para jugar de nuevo.</p>    ";
                         }
                         sesion.marcadorUsuarioPPT = 0;
                         sesion.marcadorServidorPPT = 0;
@@ -375,7 +363,7 @@ public class ServidorHTTPS {
                     + "Content-Type: text/html; charset=UTF-8" + "\r\n" //Metadatos
                     + "Content-Length: " + contenido.length() + "\r\n"
                     + "Set-Cookie: sessionId=" + sessionId + "; Path=/;\r\n"
-                    + "\r\n" //L�nea vac�a
+                    + "\r\n" //Línea vacía
                     + contenido;                                                             //Cuerpo
         }
 
@@ -505,15 +493,6 @@ public class ServidorHTTPS {
                 return false;
             }
         }
-// TODO 
-
-        private String manejarLogout(SesionJuego sesion, String sessionId) {
-            sesion.cerrarSesion();
-            sesiones.remove(sessionId);
-            return "HTTP/1.1 302 Found\n"
-                    + "Location: /login\n"
-                    + "Set-Cookie: sessionId=; Path=/; Max-Age=0\n\n";
-        }
 
         private Map<String, String> parseParams(String cuerpo) {
             return Arrays.stream(cuerpo.split("&"))
@@ -539,18 +518,6 @@ public class ServidorHTTPS {
             return password != null && password.matches("^[a-zA-Z0-9]{6,}$");
         }
 
-        /*TODO
-        private String construirRedirect(String urlDestino, String sessionId) {
-            try {
-                String encodedUrl = URLEncoder.encode(urlDestino, StandardCharsets.UTF_8.toString());
-                return "HTTP/1.1 302 Found\n"
-                        + "Location: " + encodedUrl + "\n"
-                        + "Set-Cookie: sessionId=" + sessionId + "; Path=/; HttpOnly\n"
-                        + "\n";
-            } catch (Exception e) {
-                return construirRespuesta(500, "Error en redirección", sessionId);
-            }
-        }*/
         private String construirRedirect(String urlDestino, String sessionId) {
             return "HTTP/1.1 302 Found\r\n"
                     + "Location: " + urlDestino + "\r\n" // <-- Elimina URLEncoder.encode()
@@ -571,12 +538,6 @@ public class ServidorHTTPS {
             SecretKey clave = new SecretKeySpec(CLAVE_AES, ALGORITMO);
             cipher.init(Cipher.DECRYPT_MODE, clave);
             return new String(cipher.doFinal(datosCifrados));
-        }
-
-        private String manejarHealth(String sessionId) {
-            String html = "<html><head><title>Health Check</title></head>"
-                    + "<body><h1>Servidor operativo</h1></body></html>";
-            return construirRespuesta(200, html, sessionId);
         }
 
     }

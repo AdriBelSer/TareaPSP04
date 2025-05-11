@@ -1,0 +1,9 @@
+2025-05-08 05:01:24 - Error juego Adivina en la linea 67: El valor introducido no es correcto. Valor recibido: asdasdasd
+2025-05-08 05:02:52 - Error juego Adivina en la linea 67: El valor introducido no es correcto. Valor recibido: a
+2025-05-08 05:02:55 - Error juego Adivina en la linea 67: El valor introducido no es correcto. Valor recibido: aosdij%C3%B1akf%C3%B1dlfasdf
+2025-05-08 05:03:03 - Error juego Adivina en la linea 67: El valor introducido no es correcto. Valor recibido: asdjuhfasjdfh%C3%B1asjdf%C3%B1sakjdf
+2025-05-08 05:08:40 - Error juego Adivina en la linea 245: El valor introducido no es correcto. Valor recibido: N/A
+2025-05-10 05:06:58 - Error juego Adivina en la linea 67: El valor introducido no es correcto. Valor recibido: 15&numero
+2025-05-11 05:21:09 - Error juego Adivina en la linea 67: El valor introducido no es correcto. Valor recibido: ertertewrtwe
+2025-05-11 05:21:25 - Error juego Adivina en la linea 67: El valor introducido no es correcto. Valor recibido: afaafa
+2025-05-11 05:21:27 - Error juego Adivina en la linea 237: El valor introducido no es correcto. Valor recibido: N/A
