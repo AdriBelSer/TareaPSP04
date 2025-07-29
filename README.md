@@ -33,14 +33,17 @@ Este proyecto es un **servidor HTTPS seguro** que implementa un sistema de auten
 ### Generar el almacén de claves SSL
 ```bash
 keytool -genkeypair -alias mydomain -keyalg RSA -keystore AlmacenSSL -storepass 123456
+````` 
 
 ### Compilar el proyecto:
 ```bash
 javac -cp .;bcrypt-0.4.jar pkgTarea4/ServidorHTTPS.java
+````` 
 
 ### Ejecutar el servidor:
 ```bash
 java -cp .;bcrypt-0.4.jar pkgTarea4.ServidorHTTPS
+````` 
 
 ## Uso del sistema
 ### 1- Accede al servidor en tu navegador:
